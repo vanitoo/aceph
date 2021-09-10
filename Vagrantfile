@@ -12,8 +12,9 @@ nodes = [
 Vagrant.configure("2") do |config| 
   nodes.each do |node| 
     config.vm.define node[:hostname] do |nodeconfig| 
-#      nodeconfig.vm.box = "bento/ubuntu-18.10" 
-	  nodeconfig.vm.box = "bento/ubuntu-16.04" 
+#     nodeconfig.vm.box = "bento/ubuntu-18.10" 
+#	    nodeconfig.vm.box = "bento/ubuntu-16.04" 
+      nodeconfig.vm.box = "bento/debian-10" 
       nodeconfig.vm.hostname = node[:hostname] 
       nodeconfig.vm.network :public_network, ip: node[:ip] 
 #      nodeconfig.vm.network :private_network, ip: node[:ip] 
@@ -21,17 +22,8 @@ Vagrant.configure("2") do |config|
 
 
       if node[:hostname] == "ansible"
-        #nodeconfig.vm.network "private_network", type: "dhcp"
-	    #nodeconfig.vm.synced_folder "scripts/", "/vagrant", nfs: true
-		nodeconfig.vm.synced_folder "scripts/", "/vagrant", type: "rsync",  rsync__exclude: ".git/"
-#		nodeconfig.vm.provision "shell", path: "1.sh", :privileged => false
-		nodeconfig.vm.provision "shell", inline: "/vagrant/1.sh", :privileged => false
-
-		
-	    #nodeconfig.vm.provision "file", source: "data/.", destination: "/home/vagrant"
-        #nodeconfig.vm.synced_folder "data/", "/home/vagrant/data"
-        #nodeconfig.vm.provision "shell", inline: $script, :privileged => false
-
+        nodeconfig.vm.synced_folder "scripts/", "/home/vagrant", type: "rsync",  rsync__exclude: ".git/"
+# =>    nodeconfig.vm.provision "shell", inline: "/vagrant/1.sh", :privileged => false
       end
  
       memory = node[:ram] ? node[:ram] : 512; 

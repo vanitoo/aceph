@@ -1,16 +1,15 @@
 #! /usr/bin/env bash
-echo "Installing"
 
-#su vagrant
+echo "Installing CEPH for Debian 10"
 
-#sudo apt-add-repository -y ppa:ansible/ansible
-sudo apt-add-repository ppa:ansible/ansible-2.6 -y
+sudo sh -c "echo 'deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main' >> /etc/apt/sources.list"
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367  
 
-sudo apt update && sudo apt install ansible -y
+sudo apt update && sudo apt install ansible mc -y
 
-ssh-keygen -b 2048 -t rsa -f /home/vagrant/.ssh/id_rsa -q -N ""
+ssh-keygen -b 4096 -t rsa -f /home/vagrant/.ssh/id_rsa -N ""
 
-tee -a remote-hosts.txt<<EOF
+sudo tee -a remote-hosts.txt<<EOF
 mon1
 mon2
 mon3
@@ -44,17 +43,21 @@ sshpass -f pas.txt ssh-copy-id $(whoami)@osd3
 sudo apt install git -y
 git clone https://github.com/ceph/ceph-ansible.git
 cd ceph-ansible/
-git checkout stable-3.2
-cd ..
-sudo cp -a ceph-ansible/* /etc/ansible/
+git checkout stable-4.0
+#cd ..
+#sudo cp -a ceph-ansible/* /etc/ansible/
 
 sudo apt install python-pip -y
-sudo pip install notario netaddr -q
+pip install -r requirements.txt
 
-sudo cp hosts /etc/ansible/hosts
+#sudo pip install notario netaddr -qssh
 
-sudo cp ceph /etc/ansible/group_vars/ceph
-sudo cp osds /etc/ansible/group_vars/osds
+
+
+sudo cp ../hosts /etc/ansible/hosts
+sudo cp ../ceph /etc/ansible/group_vars/ceph
+sudo cp ../osds /etc/ansible/group_vars/osds
+
 sudo mkdir /etc/ansible/fetch
 sudo chown vagrant /etc/ansible/fetch
 
