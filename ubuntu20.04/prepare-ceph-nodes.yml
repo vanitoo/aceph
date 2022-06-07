@@ -1,0 +1,127 @@
+
+sudo tee prepare-ceph-nodes.yml<<EOF
+---
+- name: Prepare ceph nodes
+  hosts: all
+  become: yes
+  become_method: sudo
+  vars:
+    ceph_admin_user: cephadmin
+  tasks:
+    - name: Set timezone
+      timezone:
+        name: Europe/Moscow
+
+#    - name: Update system
+#      apt:
+#        name: "*"
+#        state: latest
+#        update_cache: yes
+
+    - name: Install common packages
+      apt:
+        name: [vim,git,bash-completion,wget,curl,chrony]
+        state: present
+        update_cache: yes
+
+    - name: Set authorized key taken from file to root user
+      authorized_key:
+        user: root
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+    - name: Install Key docker
+      apt_key:
+        url: "https://download.docker.com/linux/ubuntu/gpg"
+        state: present
+   
+    - name: Install common packages
+      apt:
+        name: [docker-ce,docker-ce-cli,containerd.io]
+        state: present
+        update_cache: yes
+
+#    - name: Install Docker
+#      shell: |
+#        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+#        echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable" > /etc/apt/sources.list.d/docker-ce.list
+#        apt update
+#        apt install -qq -y docker-ce docker-ce-cli containerd.io
+
+#    - name: Reboot server after update and configs
+#      reboot:
+EOF
+ansible-playbook -i remote-hosts prepare-ceph-nodes.yml
+
+
+
+
+
+sudo tee update-hosts.yml<<EOF
+---
+- name: Prepare ceph nodes
+  hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Clean /etc/hosts file
+      copy:
+        content: ""
+        dest: /etc/hosts
+
+    - name: Update /etc/hosts file
+      blockinfile:
+        path: /etc/hosts
+        block: |
+           127.0.0.1     localhost
+           192.168.11.61 stor1
+           192.168.11.62 stor2
+           192.168.11.63 stor3
+           192.168.11.64 stor4
+           192.168.11.65 stor5
+           192.168.11.66 stor6
+           192.168.11.67 stor7
+           192.168.11.68 stor8
+
+EOF
+ansible-playbook -i remote-hosts update-hosts.yml
+
+
+
+
+
+
+sudo tee ceph-nodes.yml<<EOF
+---
+- name: Prepare ceph nodes
+  hosts: all
+  become: yes
+  become_method: sudo
+  vars:
+    ceph_admin_user: cephadmin
+  tasks:
+    - name: Install Key ceph
+      apt_key:
+        url: "https://download.ceph.com/keys/release.asc"
+        state: present
+
+    - name: Download
+      get_url: url=https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm dest=/usr/local/bin mode=755
+
+    - name: Install Ceph
+      shell: |
+        cephadm add-repo --release octopus
+        cephadm install ceph-common
+
+
+#  - name: Install Ceph
+#    shell: |
+#      curl --silent https://download.ceph.com/keys/release.asc | sudo apt-key add -
+#      curl --silent --remote-name --location https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm
+#      chmod +x cephadm
+#      mv cephadm  /usr/local/bin/
+#      cephadm add-repo --release octopus
+#      cephadm install ceph-common
+
+EOF
+ansible-playbook -i remote-hosts ceph-nodes.yml
