@@ -1,0 +1,82 @@
+virsh list --all
+
+virsh shutdown vm11
+ping 127.0.0.1 -c 20
+qemu-img resize /raid1/vm11.qcow2 +10G
+virsh start vm11
+
+virsh blockresize vm42 /raid1/vm42.qcow2 16G
+
+
+apt install cloud-guest-utils -y
+growpart /dev/vda 2
+growpart /dev/vda 5
+resize2fs /dev/vda5
+
+
+ceph tell osd.3 bench
+
+
+
+apt install tgt-rbd -y
+tgtadm --lld iscsi --mode system --op show | grep rbd
+rbd create -p datapool rdb1 --size 4G --name client.admin --image-feature layering
+
+
+echo '
+    driver iscsi
+    bs-type rbd
+    backing-store datapool/rbd1  # Format: /
+    initiator-address ALL
+' > /etc/tgt/conf.d/ceph.conf
+
+# сразу рестартуем таргет:
+systemctl restart tgt
+
+
+
+for node_id in $(cat remote-hosts);
+do 
+ ssh $node_id 'date';
+done
+
+
+ceph osd purge osd.11 --yes-i-really-mean-it
+
+
+
+auto bond0
+iface bond0 inet static
+address 10.10.10.1
+netmask 255.255.255.0
+slaves none
+bond_mode 802.3ad
+bond_miimon 100
+bond_downdelay 200
+bond_xmit_hash_policy 3 #(layer3+4 )
+mtu 9000
+
+for node_id in $(cat remote-hosts);
+do 
+ ssh $node_id 'date';
+ ssh $node_id 'sudo apt update';
+ ssh $node_id 'sudo apt update';
+ systemctl restart ceph-osd@$i;
+ sleep 30;
+done
+
+
+ceph config set global cluster_network 192.168.1.0/24
+
+ceph osd metadata 0 | grep addr
+
+
+
+ceph osd out 11
+ceph osd crush remove osd.11
+ceph auth del osd.11
+ceph osd rm 11
+
+
+ceph osd df tree
+

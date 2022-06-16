@@ -37,7 +37,7 @@ for node_id in $(cat remote-hosts);
 do
  ssh root@$node_id 'sudo apt update';
  ssh root@$node_id 'echo "tzdata tzdata/Areas select Europe" | debconf-set-selections';
- ssh root2$node_id 'echo "tzdata tzdata/Zones/Europe select Moscow" | debconf-set-selections';
+ ssh root@$node_id 'echo "tzdata tzdata/Zones/Europe select Moscow" | debconf-set-selections';
  ssh root@$node_id 'rm -f /etc/localtime /etc/timezone';
  ssh root@$node_id 'dpkg-reconfigure -f noninteractive tzdata';
 
