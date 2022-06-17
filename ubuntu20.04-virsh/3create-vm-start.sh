@@ -1,8 +1,11 @@
 #!/bin/bash
+#запускаем на DELL (HOST)
+
+
 
 for node_id in $(cat remote-hosts);
 do
- scp create-vm.sh root@$node_id:/root;
+  scp create-vm.sh root@$node_id:/root;
 done
 
 ssh root@host1 './create-vm.sh vm11 2 1 192.168.22.111 30';
@@ -24,4 +27,11 @@ ssh root@host4 './create-vm.sh vm41 2 1 192.168.22.141 30';
 ssh root@host4 './create-vm.sh vm42 2 1 192.168.22.142 30';
 ssh root@host4 './create-vm.sh vm43 2 1 192.168.22.143 30';
 ssh root@host4 './create-vm.sh vm44 2 1 192.168.22.144 30';
+
+
+
+sudo bash -c 'cat /etc/hosts | grep vm11 || true | echo "192.168.22.111 vm11" >> /etc/hosts'
+ssh-keyscan vm11 >> ~/.ssh/known_hosts
+sshpass -p '123qwe' ssh-copy-id root@vm11
+scp *.sh root@vm11:/root
 

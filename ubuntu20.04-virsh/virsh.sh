@@ -1,14 +1,14 @@
 
-./create-host.sh host1 10 4 192.168.22.110 50 150
-./create-host.sh host2 10 4 192.168.22.120 50 150
-./create-host.sh host3 10 4 192.168.22.130 50 150
-./create-host.sh host4 10 4 192.168.22.140 50 150
+git clone https://github.com/vanitoo/aceph.git
+cd ./aceph/ubuntu20.04-virsh/
 
-./create-vm.sh vm11 2 1 192.168.22.111 30
-./create-vm.sh vm12 2 1 192.168.22.112 30
+sudo chmod u+x *.sh
 
-./create-vm.sh vm21 2 1 192.168.22.121 30
-./create-vm.sh vm22 2 1 192.168.22.122 30
+
+
+******************
+******************
+******************
 
 
 

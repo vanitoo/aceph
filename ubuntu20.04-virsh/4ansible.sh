@@ -1,4 +1,7 @@
+#!/bin/bash
 #запускаем на VM11
+
+
 
 sudo apt update && sudo apt install ansible sshpass -y
 
@@ -54,7 +57,7 @@ for node_id in $(cat remote-hosts);
 do sshpass -p '123qwe' ssh-copy-id $(whoami)@$node_id; done
 
 
-*************
+####*************
 
 
 ansible all -m ping -i remote-hosts
@@ -176,4 +179,40 @@ sudo tee 3.yml<<EOF
 EOF
 ansible-playbook -i remote-hosts 3.yml
 
+
+
+sudo tee 4.yml<<EOF
+---
+- hosts: all
+  become: yes
+  tasks:
+  - name: set timezone to Europe/Moscow
+    timezone:
+      name: Europe/Moscow
+
+  - name: Set default locale to ru_RU.UTF-8
+    debconf:
+      name: locales
+      question: locales/default_environment_locale
+      value: ru_RU.UTF-8
+      vtype: select      
+EOF
+ansible-playbook -i remote-hosts 4.yml
+
+
+
+# Русификация
+for node_id in $(cat remote-hosts);
+do
+  ssh root@$node_id 'sudo apt update';
+  ssh root@$node_id 'echo "tzdata tzdata/Areas select Europe" | debconf-set-selections';
+  ssh root@$node_id 'echo "tzdata tzdata/Zones/Europe select Moscow" | debconf-set-selections';
+  ssh root@$node_id 'rm -f /etc/localtime /etc/timezone';
+  ssh root@$node_id 'dpkg-reconfigure -f noninteractive tzdata';
+
+  ssh root@$node_id 'locale-gen ru_RU ru_RU.UTF-8 ru_RU ru_RU.UTF-8';
+  ssh root@$node_id 'localedef -c -i ru_RU -f UTF-8 ru_RU.UTF-8';
+  ssh root@$node_id 'dpkg-reconfigure --frontend noninteractive locales';
+  ssh root@$node_id 'update-locale LANG=ru_RU.UTF-8';
+done
 

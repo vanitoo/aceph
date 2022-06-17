@@ -1,4 +1,7 @@
 #!/bin/bash
+#запускаем на DELL (HOST)
+
+
 
 ./create-host.sh host1 10 4 192.168.22.110 50 150
 ./create-host.sh host2 10 4 192.168.22.120 50 150
